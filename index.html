@@ -10,6 +10,19 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <style>
+      /* --- CSS Variables for Easy Customization --- */
+      :root {
+        --color-neon: #00ffff; /* Neon Blue */
+        --color-header-bg: var(--color-neon);
+        --color-header-text: #ffffff;
+
+        /* UPDATED: Triangle and Text Colors for Black/Neon Theme */
+        --color-background-triangle: #000000; /* Black background for triangles */
+        --color-text: var(--color-neon); /* Neon text on black background */
+        --color-background-hover: #333333; /* Dark grey hover state */
+      }
+
+      /* --- BASE STYLES & LAYOUT --- */
       body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -23,33 +36,26 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px;
-        background-color: #fff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background-color: var(--color-header-bg);
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+      }
+      .logo img {
+        height: 80px;
+      }
+      nav a {
+        margin-left: 20px;
+        font-size: 24px;
+        color: var(--color-header-text);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+      nav a:hover {
+        color: #333333;
       }
       nav .nav-icon {
         height: 24px;
         width: 24px;
-        vertical-align: middle;
-      }
-
-      .logo img {
-        height: 80px;
-      }
-
-      nav a {
-        margin-left: 20px;
-        font-size: 24px;
-        color: #333;
-        text-decoration: none;
-      }
-      nav a:hover {
-        color: #007bff;
-      }
-      .hero {
-        text-align: center;
-        padding: 50px 20px;
-        background-color: #007bff;
-        color: #fff;
+        vertical-align: top;
       }
       .links {
         padding: 20px;
@@ -57,7 +63,7 @@
         margin: 0 auto;
       }
 
-      /* SCROLLING MARQUEE STYLES */
+      /* --- MARQUEE STYLES --- */
       .scrolling-container {
         overflow: hidden;
         white-space: nowrap;
@@ -72,7 +78,6 @@
         animation: scroll-rtl 30s linear infinite;
         font-size: 1em;
       }
-
       @keyframes scroll-rtl {
         0% {
           transform: translateX(0);
@@ -81,7 +86,6 @@
           transform: translateX(-100%);
         }
       }
-
       @-webkit-keyframes scroll-rtl {
         0% {
           -webkit-transform: translateX(0);
@@ -90,39 +94,111 @@
           -webkit-transform: translateX(-100%);
         }
       }
-      /* END OF SCROLLING MARQUEE STYLES */
 
+      /* --- LINKS GRID & BASE TRIANGLE STYLES --- */
       .links ul {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 5px; /* Уменьшенный гэп */
+        /* Vertical gap 15px, Horizontal gap 5px */
+        gap: 15px 5px;
         list-style: none;
         padding: 0;
+        perspective: 800px;
+        transform-style: preserve-3d;
       }
+
       .links li a {
-        /* ОБЩИЕ СТИЛЫ ДЛЯ ВСЕХ ТРЕУГОЛЬНИКОВ */
+        /* General Properties */
         display: flex;
         align-items: center;
-
         height: 60px;
-        padding: 5px; /* Общий отступ, который будет переопределен ниже */
-
-        background-color: #fff;
+        padding: 5px;
+        /* UPDATED: Black background */
+        background-color: var(--color-background-triangle);
         border-radius: 0;
         text-decoration: none;
-        color: #333;
-
+        /* UPDATED: Neon text color */
+        color: var(--color-text);
         white-space: normal;
         word-break: break-word;
         text-align: center;
         font-size: 0.8em;
+        line-height: 1.2;
 
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        /* 3D and Transition */
+        transform-style: preserve-3d;
+        transform: translateZ(0);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        position: relative;
+        overflow: hidden;
 
-        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        /* Neon Border (Normal State) - Thicker Sides */
+        box-shadow: 0 0 0 1px rgba(0, 255, 255, 0.4),
+          /* Faint overall neon border */ -2px 0 0 0px rgba(0, 255, 255, 0.3),
+          /* Thicker left side (faint) */ 2px 0 0 0px rgba(0, 255, 255, 0.3),
+          /* Thicker right side (faint) */ 0 2px 4px rgba(0, 0, 0, 0.15); /* Soft drop shadow (optional on black) */
       }
 
-      /* НЕЧЕТНЫЕ ЭЛЕМЕНТЫ: УГЛОМ ВВЕРХ (ЛОГОТИП СВЕРХУ, ТЕКСТ СНИЗУ) */
+      /* Force icons to be visible against black background */
+      .links li a img {
+        width: 20px;
+        height: 20px;
+        margin-right: 0;
+      }
+
+      /* --- INNER SUNKEN EFFECT (Pseudo-elements) --- */
+      .links li a::before,
+      .links li a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        opacity: 0;
+        clip-path: inherit;
+        -webkit-clip-path: inherit;
+      }
+      .links li a::before {
+        box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.1); /* Adjusted inner shadow for black background */
+      }
+      .links li a::after {
+        box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.7); /* Adjusted inner highlight for black background */
+      }
+
+      /* --- HOVER EFFECTS --- */
+      .links li a:hover {
+        /* UPDATED: Darker grey hover background */
+        background-color: var(--color-background-hover);
+
+        /* Neon Border (Hover State) - Stronger Thicker Sides */
+        box-shadow: 0 0 0 3px var(--color-neon),
+          /* Overall visible neon border */ -5px 0 0 0px var(--color-neon),
+          /* Significantly thicker left side */ 5px 0 0 0px var(--color-neon),
+          /* Significantly thicker right side */ 0 10px 20px rgba(0, 0, 0, 0.8); /* Stronger drop shadow on black */
+
+        transform: translateZ(20px);
+      }
+      .links li a:hover::before,
+      .links li a:hover::after {
+        opacity: 1; /* Activate inner shadow on hover */
+      }
+      .links li a:hover img,
+      .links li a:hover span {
+        transform: translateZ(-10px); /* Push inner content in */
+      }
+      .links li a:active {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transform: translateZ(0) translateY(0);
+      }
+      .links li a:active::before,
+      .links li a:active::after {
+        opacity: 0; /* Deactivate inner shadow on active */
+      }
+
+      /* --- ODD TRIANGLES (Pointing Up) --- */
       .links li:nth-child(odd) a {
         clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
         -webkit-clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
@@ -133,112 +209,107 @@
         margin-bottom: 5px;
         margin-top: 0;
       }
+      .links li:nth-child(odd) a:hover {
+        transform: translateZ(20px) rotateX(-5deg) translateY(5px);
+      }
 
-      /* ЧЕТНЫЕ ЭЛЕМЕНТЫ: УГЛОМ ВНИЗ (ТЕКСТ СВЕРХУ, ЛОГОТИП СНИЗУ) */
+      /* --- EVEN TRIANGLES (Pointing Down) --- */
       .links li:nth-child(even) a {
         clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
         -webkit-clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
         flex-direction: column-reverse;
         justify-content: flex-start;
-        /* ИЗМЕНЕНИЕ: Уменьшаем верхний отступ для повышения контента */
         padding-top: 1px;
-        padding-bottom: 5px;
+        /* UPDATED: Increased padding-bottom to 20px */
+        padding-bottom: 20px;
       }
       .links li:nth-child(even) a img {
         margin-top: 5px;
         margin-bottom: 0;
       }
+      .links li:nth-child(even) a:hover {
+        transform: translateZ(20px) rotateX(5deg) translateY(-5px);
+      }
 
-      .links li a:hover {
-        background-color: #f0f0f0;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      }
-      .links li a:active {
-        box-shadow: none;
-        transform: translateY(2px);
-      }
-      .links li img {
-        width: 20px;
-        height: 20px;
-        margin-right: 0;
-      }
+      /* --- CONTACT SECTION & SCROLL BUTTON --- */
       .contact {
         padding: 20px;
         max-width: 600px;
         margin: 0 auto;
         position: relative;
       }
-
       .scroll-up-button {
         position: absolute;
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background-color: #fff;
-        border: 2px solid #333;
+        /* UPDATED: Black background for button */
+        background-color: #000000;
+        /* UPDATED: Neon border */
+        border: 2px solid var(--color-neon);
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-
         display: flex;
         justify-content: center;
         align-items: center;
-
         font-size: 20px;
-        color: #333;
+        /* UPDATED: Neon icon color */
+        color: var(--color-neon);
         text-decoration: none;
         z-index: 10;
         transition: all 0.2s;
       }
-
       .scroll-up-button:hover {
-        color: #fff;
-        background-color: #007bff;
-        border-color: #007bff;
+        color: #000; /* Dark text on hover */
+        background-color: var(--color-neon); /* Neon background on hover */
+        border-color: var(--color-neon);
       }
-
       .contact .scrolling-container {
         margin-top: 50px;
       }
-
       .contact form {
         display: flex;
         flex-direction: column;
-      }
-      .contact label {
-        margin-top: 10px;
       }
       .contact input,
       .contact textarea {
         padding: 10px;
         margin-top: 5px;
-        border: 1px solid #ccc;
+        /* UPDATED: Black background, Neon border, Neon text */
+        background-color: #000000;
+        color: var(--color-neon);
+        border: 1px solid var(--color-neon);
         border-radius: 5px;
+        resize: vertical;
+      }
+      .contact input::placeholder,
+      .contact textarea::placeholder {
+        color: rgba(0, 255, 255, 0.5); /* Fainter neon placeholder text */
       }
       .contact button {
         margin-top: 20px;
         padding: 8px 15px;
         background-color: #000000;
-        color: #fff;
+        /* UPDATED: Neon text color */
+        color: var(--color-neon);
         border: none;
         border-radius: 20px;
         cursor: pointer;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        transition: all 0.2s ease;
         align-self: center;
         font-size: 16px;
       }
       .contact button:hover {
         background-color: #333;
+        /* UPDATED: Add neon glow on hover */
+        box-shadow: 0 0 10px var(--color-neon);
       }
       .contact button:active {
         box-shadow: none;
         transform: translateY(2px);
-      }
-      .honeypot {
-        display: none;
       }
     </style>
   </head>
@@ -246,7 +317,7 @@
     <header>
       <div class="logo">
         <a
-          href="https://open.spotify.com/artist/4R6fu0Zztw59xHFNUDqBD0"
+          href="https://open.spotify.com/artist/0VJAOXhbybZztBRf25LxfE"
           target="_blank"
         >
           <img src="2stvolka.png" alt="2stvolka Logo" />
@@ -254,7 +325,7 @@
       </div>
       <nav>
         <a
-          href="https://open.spotify.com/artist/4R6fu0Zztw59xHFNUDqBD0"
+          href="https://open.spotify.com/artist/0VJAOXhbybZztBRf25LxfE"
           target="_blank"
           ><i class="fab fa-spotify"></i
         ></a>
@@ -266,7 +337,7 @@
         <a href="https://www.youtube.com/@2stvolka" target="_blank"
           ><i class="fab fa-youtube"></i
         ></a>
-        <a href="https://www.instagram.com/2stvolka/" target="_blank"
+        <a href="https://www.instagram.com/2stvolkaofficial/" target="_blank"
           ><i class="fab fa-instagram"></i
         ></a>
 
@@ -275,9 +346,10 @@
         ></a>
       </nav>
     </header>
+
     <section class="links">
       <h2 class="scrolling-container">
-        <span class="scrolling-content">2stvolka music     </span>
+        <span class="scrolling-content">2stvolka</span>
       </h2>
       <ul>
         <li>
@@ -285,7 +357,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=7digital.com"
               alt="7digital"
-            />7digital</a
+            /><span>7digital</span></a
           >
         </li>
         <li>
@@ -295,7 +367,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=amazon.com"
               alt="Amazon"
-            />Amazon</a
+            /><span>Amazon</span></a
           >
         </li>
         <li>
@@ -303,7 +375,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=anghami.com"
               alt="Anghami"
-            />Anghami</a
+            /><span>Anghami</span></a
           >
         </li>
         <li>
@@ -313,7 +385,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=apple.com"
               alt="Apple Music/iTunes"
-            />Apple<br />Music/iTunes</a
+            /><span>Apple<br />Music/iTunes</span></a
           >
         </li>
         <li>
@@ -321,7 +393,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=audiomack.com"
               alt="Audiomack"
-            />Audiomack</a
+            /><span>Audiomack</span></a
           >
         </li>
         <li>
@@ -329,7 +401,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=deezer.com"
               alt="Deezer"
-            />Deezer</a
+            /><span>Deezer</span></a
           >
         </li>
         <li>
@@ -339,7 +411,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=music-flo.com"
               alt="Flo"
-            />Flo</a
+            /><span>Flo</span></a
           >
         </li>
         <li>
@@ -349,15 +421,15 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=iheart.com"
               alt="iHeartRadio"
-            />iHeart<br />Radio</a
+            /><span>iHeart<br />Radio</span></a
           >
         </li>
         <li>
-          <a href="https://www.instagram.com/2stvolka/" target="_blank"
+          <a href="https://www.instagram.com/2stvolkaofficial/" target="_blank"
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=instagram.com"
               alt="Instagram"
-            />Instagram</a
+            /><span>Instagram</span></a
           >
         </li>
         <li>
@@ -367,7 +439,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=kkbox.com"
               alt="KKBox"
-            />KKBox</a
+            /><span>KKBox</span></a
           >
         </li>
         <li>
@@ -377,7 +449,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=line.me"
               alt="LINE Music"
-            />LINE<br />Music</a
+            /><span>LINE<br />Music</span></a
           >
         </li>
         <li>
@@ -387,7 +459,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=pandora.com"
               alt="Pandora"
-            />Pandora</a
+            /><span>Pandora</span></a
           >
         </li>
         <li>
@@ -397,17 +469,17 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=qobuz.com"
               alt="Qobuz"
-            />Qobuz</a
+            /><span>Qobuz</span></a
           >
         </li>
         <li>
           <a
-            href="https://open.spotify.com/artist/4R6fu0Zztw59xHFNUDqBD0"
+            href="https://open.spotify.com/artist/0VJAOXhbybZztBRf25LxfE"
             target="_blank"
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=spotify.com"
               alt="Spotify"
-            />Spotify</a
+            /><span>Spotify</span></a
           >
         </li>
         <li>
@@ -415,7 +487,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=tidal.com"
               alt="TIDAL"
-            />TIDAL</a
+            /><span>TIDAL</span></a
           >
         </li>
         <li>
@@ -425,7 +497,7 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=youtube.com"
               alt="YouTube Music"
-            />YouTube<br />Music</a
+            /><span>YouTube<br />Music</span></a
           >
         </li>
         <li>
@@ -433,25 +505,25 @@
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=youtube.com"
               alt="YouTube"
-            />YouTube</a
+            /><span>YouTube</span></a
           >
         </li>
       </ul>
     </section>
-    <section id="contact" class="contact">
+
+    <section class="contact">
       <a href="#top" class="scroll-up-button" title="Go to top">
         <i class="fas fa-arrow-up"></i>
       </a>
+    </section>
 
-      <h2 class="scrolling-container">
-        <span class="scrolling-content">Message for 2stvolka     </span>
-      </h2>
+    <section id="contact" class="contact">
       <form onsubmit="handleMailto(event);">
         <textarea
           id="message"
           name="body"
           rows="5"
-          placeholder="Your message here..."
+          placeholder="Your message for 2stvolka here..."
         ></textarea>
         <button type="submit">Send</button>
       </form>
