@@ -13,7 +13,7 @@
       /* --- CSS Variables for Easy Customization --- */
       :root {
         /* NEW ORANGE COLOR SCHEME */
-        --color-main-orange: #ff8c00; /* Dark Orange - для иконок и акцентов */
+        --color-main-orange: #ff8c00; /* Dark Orange - for icons and accents */
         --color-light-orange: #ffa500; /* Light Orange */
         --color-background-orange: #ff4500; /* Red-Orange for Header Background */
 
@@ -22,10 +22,10 @@
         --color-header-bg: #1a1a1a;
         --color-header-text: #ffffff;
         --color-background-triangle: #000000;
-        --color-text-button: #ffffff; /* NEW: Белый текст для кнопок стриминга */
+        --color-text-button: #ffffff; /* NEW: White text for streaming buttons */
         --color-background-hover: #333333;
 
-        /* НОВАЯ ШИРИНА МЕНЮ */
+        /* NEW MENU WIDTH */
         --sidebar-width: 50px;
       }
 
@@ -34,13 +34,13 @@
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #f4f4f4;
-        color: #333;
+        background-color: #1a1a1a;
+        color: #ffffff;
         scroll-behavior: smooth;
         padding-left: var(--sidebar-width);
       }
 
-      /* --- VERTICAL HEADER/NAV STYLES (Узкий Иконостас) --- */
+      /* --- VERTICAL HEADER/NAV STYLES (Narrow Iconostasis) --- */
       header {
         position: fixed;
         top: 0;
@@ -62,6 +62,48 @@
       }
       .logo img {
         height: 30px;
+      }
+      .music-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--color-main-orange);
+        font-size: 16px;
+        font-weight: bold;
+        line-height: 1.1;
+        padding-bottom: 20px;
+      }
+      .music-label span {
+        opacity: 0;
+        animation: fadeIn 0.5s ease-in-out forwards;
+      }
+      .music-label span:nth-child(1) {
+        animation-delay: 0.2s;
+      }
+      .music-label span:nth-child(2) {
+        animation-delay: 0.4s;
+      }
+      .music-label span:nth-child(3) {
+        animation-delay: 0.6s;
+      }
+      .music-label span:nth-child(4) {
+        animation-delay: 0.8s;
+      }
+      .music-label span:nth-child(5) {
+        animation-delay: 1s;
+      }
+      .music-label span:nth-child(6) {
+        animation-delay: 1.2s;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       nav {
         display: flex;
@@ -105,6 +147,7 @@
         padding: 0;
         margin: 0 auto;
         width: 100%;
+        color: var(--color-main-orange);
       }
       .scrolling-container .scrolling-content {
         display: inline-block;
@@ -130,16 +173,17 @@
         }
       }
 
-      /* --- LINKS GRID & FIGURE-EIGHT BUTTON STYLES (ОБНОВЛЕНО) --- */
+      /* --- LINKS GRID & FIGURE-EIGHT BUTTON STYLES (UPDATED) --- */
       .links {
-        padding: 20px;
+        padding: 20px 0;
         max-width: 1200px;
         margin: 0 auto;
       }
       .links ul {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 15px 5px;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 100px));
+        gap: 15px 20px;
+        justify-content: space-evenly;
         list-style: none;
         padding: 0;
         perspective: 800px;
@@ -150,14 +194,14 @@
         /* Figure-Eight General Properties */
         display: flex;
         flex-direction: column;
-        justify-content: center; /* NEW: Центрируем содержимое */
+        justify-content: center; /* NEW: Center the content */
         align-items: center;
-        height: 100px; /* NEW: Уменьшенная высота */
+        height: 100px; /* NEW: Reduced height */
         width: 100px;
-        padding: 5px 0; /* NEW: Уменьшен вертикальный padding */
+        padding: 5px 0; /* NEW: Reduced vertical padding */
         background-color: var(--color-background-triangle);
         text-decoration: none;
-        color: var(--color-text-button); /* NEW: Белый текст */
+        color: var(--color-text-button); /* NEW: White text */
         white-space: normal;
         word-break: break-word;
         text-align: center;
@@ -171,31 +215,31 @@
 
         /* FIGURE-EIGHT SHAPE using border-radius */
         border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
-        /* Оранжевая обводка (нормальное состояние) */
+        /* Orange border (normal state) */
         box-shadow: 0 0 0 2px var(--color-main-orange),
-          0 0 5px rgba(255, 140, 0, 0.5); /* Добавлен легкий оранжевый свет */
+          0 0 5px rgba(255, 140, 0, 0.5); /* Added light orange glow */
       }
 
       .links li a:hover {
         background-color: var(--color-background-hover);
-        /* Усиленный оранжевый свет на ховере */
+        /* Enhanced orange glow on hover */
         box-shadow: 0 0 0 3px var(--color-light-orange),
           0 0 20px var(--color-light-orange), 0 10px 20px rgba(0, 0, 0, 0.8);
         transform: translateZ(20px) translateY(-5px);
       }
 
-      /* Inner content positioning (ОБНОВЛЕНО) */
+      /* Inner content positioning (UPDATED) */
       .links li a img {
         width: 30px;
         height: 30px;
         margin-top: 0px;
-        margin-bottom: 2px; /* NEW: Уменьшен отступ между иконкой и текстом */
+        margin-bottom: 2px; /* NEW: Reduced margin between icon and text */
       }
       .links li a span {
-        margin-top: 2px; /* NEW: Уменьшен отступ между текстом и иконкой */
+        margin-top: 2px; /* NEW: Reduced margin between text and icon */
         display: block;
         font-weight: bold;
-        color: var(--color-text-button); /* Убедиться, что текст белый */
+        color: var(--color-text-button); /* Ensure text is white */
       }
 
       /* --- INNER SUNKEN EFFECT (Pseudo-elements) --- */
@@ -322,6 +366,14 @@
         >
           <img src="2stvolka.png" alt="2stvolka Logo" />
         </a>
+      </div>
+      <div class="music-label">
+        <span>М</span>
+        <span>У</span>
+        <span>З</span>
+        <span>Ы</span>
+        <span>К</span>
+        <span>А</span>
       </div>
       <nav>
         <a
