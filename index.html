@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -209,22 +209,27 @@
         line-height: 1.2;
         position: relative;
         overflow: hidden;
-        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        transition:
+          transform 0.4s ease,
+          box-shadow 0.4s ease;
         transform-style: preserve-3d;
         transform: translateZ(0);
 
         /* FIGURE-EIGHT SHAPE using border-radius */
         border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
         /* Orange border (normal state) */
-        box-shadow: 0 0 0 2px var(--color-main-orange),
+        box-shadow:
+          0 0 0 2px var(--color-main-orange),
           0 0 5px rgba(255, 140, 0, 0.5); /* Added light orange glow */
       }
 
       .links li a:hover {
         background-color: var(--color-background-hover);
         /* Enhanced orange glow on hover */
-        box-shadow: 0 0 0 3px var(--color-light-orange),
-          0 0 20px var(--color-light-orange), 0 10px 20px rgba(0, 0, 0, 0.8);
+        box-shadow:
+          0 0 0 3px var(--color-light-orange),
+          0 0 20px var(--color-light-orange),
+          0 10px 20px rgba(0, 0, 0, 0.8);
         transform: translateZ(20px) translateY(-5px);
       }
 
@@ -412,7 +417,10 @@
 
         <a
           href="#contact"
-          onclick="focusMessage(); return true;"
+          onclick="
+            focusMessage();
+            return true;
+          "
           title="Contact"
           ><i class="fas fa-envelope"></i
         ></a>
@@ -571,6 +579,19 @@
           >
         </li>
         <li>
+          <a href="https://vk.com/artist/2stvolka" target="_blank"
+            ><img src="https://vk.com/favicon.ico" alt="VK" /><span>VK</span></a
+          >
+        </li>
+        <li>
+          <a href="https://music.yandex.com/artist/25366315" target="_blank"
+            ><img
+              src="https://music.yandex.ru/favicon.ico"
+              alt="Yandex Music"
+            /><span>Yandex<br />Яндекс</span></a
+          >
+        </li>
+        <li>
           <a
             href="https://www.youtube.com/channel/UCafR4RPRf09cVCgpMAzW2FA"
             target="_blank"
@@ -580,12 +601,20 @@
             /><span>YouTube<br />Music</span></a
           >
         </li>
+
         <li>
           <a href="https://www.youtube.com/@2stvolka" target="_blank"
             ><img
               src="https://www.google.com/s2/favicons?sz=64&domain=youtube.com"
               alt="YouTube"
             /><span>YouTube</span></a
+          >
+        </li>
+        <li>
+          <a href="https://zvuk.com/artist/214079778" target="_blank"
+            ><img src="https://zvuk.com/favicon.ico" alt="Zvuk" /><span
+              >Zvuk<br />Звук</span
+            ></a
           >
         </li>
       </ul>
@@ -598,7 +627,7 @@
     </section>
 
     <section id="contact" class="contact">
-      <form onsubmit="handleMailto(event);">
+      <form onsubmit="handleMailto(event)">
         <textarea
           id="message"
           name="body"
