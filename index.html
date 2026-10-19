@@ -1163,6 +1163,12 @@
         { slug: "999996s", title: "999996s" },
       ];
 
+      // Яндекс Музыка: виджет music.yandex.ru/iframe/#track/<id>/<albumId>
+      // играет ознакомительный фрагмент с обложкой без авторизации и
+      // работает из РФ без VPN. Заполняется ссылками вида
+      // https://music.yandex.ru/album/<albumId>/track/<trackId>
+      var YANDEX_TRACK_EMBEDS = [];
+
       var afBox, afCover, afTitle, afStatus, afAudio, afEmbedHolder, afResume;
 
       function afInit() {
@@ -1340,13 +1346,27 @@
 
       function handlePlaybackError() {
         if (!afBox) afInit();
-        var data = ytPlayer.getVideoData ? ytPlayer.getVideoData() : {};
+        var data =
+          ytPlayer && ytPlayer.getVideoData ? ytPlayer.getVideoData() : {};
         var rawTitle = data.title || "";
         var clean = cleanTitle(rawTitle);
         var ytCover = data.video_id
           ? "https://i.ytimg.com/vi/" + data.video_id + "/hqdefault.jpg"
           : null;
         showFallback(clean, "Ищу обложку и песню…", ytCover);
+
+        // 0. Яндекс Музыка — ознакомительный фрагмент с обложкой,
+        // доступен из РФ без VPN (список заполняется ссылками на треки)
+        if (YANDEX_TRACK_EMBEDS.length) {
+          afStatus.textContent = "Яндекс Музыка: ознакомительный фрагмент";
+          var yifr = document.createElement("iframe");
+          yifr.src = YANDEX_TRACK_EMBEDS[rnd(YANDEX_TRACK_EMBEDS.length)];
+          yifr.style.height = "180px";
+          yifr.title = "Яндекс Музыка";
+          afEmbedHolder.appendChild(yifr);
+          afCover.hidden = true;
+          return;
+        }
 
         // 1. Audiomack — полная песня
         var song = tryAudiomack(rawTitle);
@@ -1540,6 +1560,29 @@
 
       var ytApiScript = document.createElement("script");
       ytApiScript.src = "https://www.youtube.com/iframe_api";
+      // YouTube недоступен/замедлен (например, в РФ без VPN):
+      // скрипт API не загрузился или плеер не создался — включаем запасной
+      ytApiScript.onerror = function () {
+        setTimeout(handlePlaybackError, 1500);
+      };
+      setTimeout(function () {
+        if (!ytPlayer) handlePlaybackError();
+      }, 12000);
+      // видео «висит» в буферизации дольше 25 секунд — тоже запасной
+      var bufferingSince = 0;
+      setInterval(function () {
+        if (!ytPlayer || !ytPlayer.getPlayerState) return;
+        if (ytPlayer.getPlayerState() === 3) {
+          if (!bufferingSince) {
+            bufferingSince = Date.now();
+          } else if (Date.now() - bufferingSince > 25000) {
+            bufferingSince = 0;
+            handlePlaybackError();
+          }
+        } else {
+          bufferingSince = 0;
+        }
+      }, 3000);
       document.head.appendChild(ytApiScript);
     </script>
   </body>
