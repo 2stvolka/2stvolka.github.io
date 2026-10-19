@@ -363,6 +363,25 @@
         height: 100%;
       }
 
+      /* Обложка следующего видео во время переключения */
+      .player-disc .switch-cover {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        background: #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .player-disc .switch-cover[hidden] {
+        display: none;
+      }
+      .player-disc .switch-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
       /* Fallback: обложка + песня, если YouTube упал с ошибкой */
       .audio-fallback {
         position: absolute;
@@ -598,6 +617,9 @@
       <div class="player-window">
         <div class="player-disc">
           <div id="yt-player"></div>
+          <div id="switch-cover" class="switch-cover" hidden>
+            <img alt="" />
+          </div>
           <div id="audio-fallback" class="audio-fallback" hidden>
           <img id="af-cover" alt="обложка" />
           <div id="af-embed-holder"></div>
@@ -922,7 +944,7 @@
         if (!ytPlayer || !ytPlayer.getVideoData) return;
         if (historyPos > 0) {
           historyPos--;
-          ytPlayer.loadVideoById(playHistory[historyPos]);
+          switchToVideo(playHistory[historyPos]);
         } else {
           // в начале истории — перематываем текущее к началу
           ytPlayer.seekTo(0, true);
@@ -934,10 +956,105 @@
         if (!ytPlayer || !ytPlayer.getVideoData) return;
         if (historyPos < playHistory.length - 1) {
           historyPos++;
-          ytPlayer.loadVideoById(playHistory[historyPos]);
+          switchToVideo(playHistory[historyPos]);
+          return;
+        }
+        var id = pickRandomId();
+        if (id) {
+          switchToVideo(id);
         } else {
+          // кеша ещё нет (старт страницы) — хотя бы остановим текущее
+          try {
+            ytPlayer.pauseVideo();
+          } catch (e) {}
           playRandom();
         }
+      }
+
+      // Кеш списков видео обоих каналов — чтобы знать id следующего
+      // ролика ДО переключения и прогреть его обложку заранее
+      var playlistCache = [null, null];
+      var switching = false;
+
+      function pickRandomId() {
+        var cur = "";
+        try {
+          cur = ytPlayer.getVideoData().video_id || "";
+        } catch (e) {}
+        var current = ytPlayer.getPlaylist() || [];
+        var other =
+          currentChannel === 0 || currentChannel === 1
+            ? playlistCache[1 - currentChannel] || []
+            : [];
+        // 50/50 между каналами, если оба списка известны
+        var useList;
+        if (current.length && other.length) {
+          useList = rnd(2) === 0 ? current : other;
+        } else {
+          useList = current.length ? current : other;
+        }
+        if (!useList.length) {
+          useList = playlistCache[0] || playlistCache[1] || [];
+        }
+        if (!useList.length) return null;
+        var i = rnd(useList.length);
+        if (useList.length > 1) {
+          while (useList[i] === cur) i = rnd(useList.length);
+        }
+        return useList[i];
+      }
+
+      function preloadCover(id, onReady) {
+        var img = new Image();
+        var done = false;
+        function finish() {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          onReady();
+        }
+        var timer = setTimeout(finish, 6000); // не ждём вечно
+        img.onload = finish;
+        img.onerror = finish;
+        img.src = "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg";
+      }
+
+      function showSwitchCover(id) {
+        var box = document.getElementById("switch-cover");
+        if (!box) return;
+        box.querySelector("img").src =
+          "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg";
+        box.hidden = false;
+      }
+
+      function hideSwitchCover() {
+        var box = document.getElementById("switch-cover");
+        if (box) box.hidden = true;
+      }
+
+      // Немедленная остановка, показ обложки, старт только когда
+      // картинка следующего видео прогрузилась
+      function switchToVideo(id) {
+        if (!id || switching) return;
+        switching = true;
+        try {
+          ytPlayer.pauseVideo();
+        } catch (e) {}
+        showSwitchCover(id);
+        preloadCover(id, function () {
+          var list = ytPlayer.getPlaylist() || [];
+          var idx = list.indexOf(id);
+          if (currentChannel >= 0 && idx >= 0) {
+            ytPlayer.playVideoAt(idx);
+          } else {
+            ytPlayer.loadVideoById(id);
+          }
+          // страховка: снять блокировку и обложку даже без события
+          setTimeout(function () {
+            switching = false;
+            hideSwitchCover();
+          }, 5000);
+        });
       }
 
       function rnd(n) {
@@ -1007,6 +1124,20 @@
                 errorStreak = 0;
                 setSpinning(true);
                 rememberInHistory();
+                // кешируем список видео канала для быстрых переключений
+                var curList = ytPlayer.getPlaylist();
+                if (
+                  currentChannel >= 0 &&
+                  curList &&
+                  curList.length
+                ) {
+                  playlistCache[currentChannel] = curList.slice();
+                }
+                // новое видео начало грузиться/играть — убираем обложку
+                if (e.data === YT.PlayerState.PLAYING) {
+                  switching = false;
+                  hideSwitchCover();
+                }
               }
               if (e.data === YT.PlayerState.PAUSED) {
                 setSpinning(false);
