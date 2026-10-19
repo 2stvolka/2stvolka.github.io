@@ -328,6 +328,12 @@
         aspect-ratio: 4 / 3;
         margin: 25px auto 5px;
       }
+      /* РФ-режим с виджетом Яндекса: окно вытянуто по вертикали,
+         потому что виджет добавляет свою рекламную полосу */
+      .player-window.ru-tall {
+        width: min(92%, 520px);
+        aspect-ratio: 3 / 4;
+      }
       .player-disc {
         position: absolute;
         inset: 0;
@@ -1314,6 +1320,8 @@
         afEmbedHolder.innerHTML = "";
         afResume.hidden = false;
         afCover.style.maxHeight = "";
+        var pwShow = document.querySelector(".player-window");
+        if (pwShow) pwShow.classList.remove("ru-tall");
         // Быстрые ссылки на российские сервисы: послушать трек целиком
         // (Звук не отдаёт фрагмент без входа — даём один клик до песни)
         var ru = document.getElementById("af-ru-links");
@@ -1389,6 +1397,9 @@
         afBox.hidden = true;
         afCover.removeAttribute("src");
         afEmbedHolder.innerHTML = "";
+        // возвращаем обычные пропорции окна (4:3)
+        var pw = document.querySelector(".player-window");
+        if (pw) pw.classList.remove("ru-tall");
       }
 
       function resumeYouTube() {
@@ -1537,15 +1548,20 @@
           afStatus.textContent = "Яндекс Музыка: ознакомительный фрагмент";
           // для РФ кнопка возврата не нужна: работают стрелки и ссылки
           afResume.hidden = true;
+          // вытянутое по вертикали окно: у виджета Яндекса есть своя
+          // рекламная полоса, ей нужен дополнительный запас высоты
+          document
+            .querySelector(".player-window")
+            .classList.add("ru-tall");
           // крупная обложка релиза с открытого CDN Звука (без VPN из РФ)
           var rel = zvukReleaseFor(rawTitle);
           if (!clean) afTitle.textContent = "Воспоминания";
           afCover.hidden = false;
           afCover.src = rel.url;
-          afCover.style.maxHeight = "44%"; // чуть компактнее, чтобы вместить виджет
+          afCover.style.maxHeight = "46%";
           var yifr = document.createElement("iframe");
           yifr.src = YANDEX_TRACK_EMBEDS[rnd(YANDEX_TRACK_EMBEDS.length)];
-          yifr.style.height = "170px";
+          yifr.style.height = "190px";
           yifr.title = "Яндекс Музыка";
           afEmbedHolder.appendChild(yifr);
           return;
