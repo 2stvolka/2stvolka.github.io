@@ -1089,6 +1089,160 @@
           });
       }
 
+      // === ПРОВЕРКА ВСЕХ ССЫЛОК ПРИ ОТКРЫТИИ СТРАНИЦЫ ===
+      // Работает параллельно плееру. Ссылки, чьи сайты недоступны или
+      // страницы артиста удалены, скрываются со страницы.
+
+      // Страницы артиста, удалённые на стороне сервиса (проверено вручную:
+      // из браузера это не определить — iHeart отдаёт 403, KKBOX — AccessDenied)
+      var KNOWN_DEAD_LINKS = [
+        "https://www.iheart.com/artist/2stvolka-48537166/",
+        "https://www.kkbox.com/hk/tc/artist/8rB2tNswsPZqr4mLFU",
+      ];
+
+      // Доступность сайта: no-cors запрос; если он отклонён защитой сайта
+      // (CORP и т.п.), пробуем favicon картинкой — она защиты не подчиняется.
+      // Ссылка считается мёртвой, только если недоступны оба способа
+      function checkFaviconHost(url) {
+        return new Promise(function (resolve) {
+          var host = url.replace(/^([^:]+:\/\/[^/]+).*$/, "$1");
+          var img = new Image();
+          var done = false;
+          var timer = setTimeout(function () {
+            if (!done) {
+              done = true;
+              resolve(false);
+            }
+          }, 8000);
+          img.onload = function () {
+            if (!done) {
+              done = true;
+              clearTimeout(timer);
+              resolve(true);
+            }
+          };
+          img.onerror = function () {
+            if (!done) {
+              done = true;
+              clearTimeout(timer);
+              resolve(false);
+            }
+          };
+          img.src = host + "/favicon.ico?lc=" + Date.now();
+        });
+      }
+
+      function checkReachable(url) {
+        var ctrl = new AbortController();
+        var timer = setTimeout(function () {
+          ctrl.abort();
+        }, 9000);
+        return fetch(url, { mode: "no-cors", signal: ctrl.signal })
+          .then(function () {
+            clearTimeout(timer);
+            return true;
+          })
+          .catch(function () {
+            clearTimeout(timer);
+            return checkFaviconHost(url);
+          });
+      }
+
+      // Точные проверки существования страницы артиста через открытые API
+      // (Spotify oEmbed — CORS, Deezer и iTunes — JSONP). Возвращают
+      // Promise: resolve = страница жива, reject {dead:true} = удалена.
+      var ENTITY_CHECKS = [
+        {
+          match: /^https:\/\/open\.spotify\.com\//,
+          check: function (url) {
+            return fetch(
+              "https://open.spotify.com/oembed?url=" + encodeURIComponent(url)
+            ).then(function (r) {
+              if (r.status === 404 || r.status === 410)
+                throw { dead: true, why: "страница Spotify не найдена" };
+            });
+          },
+        },
+        {
+          match: /^https:\/\/www\.deezer\.com\//,
+          check: function () {
+            return jsonp(
+              "https://api.deezer.com/artist/354664742?output=jsonp"
+            ).then(function (d) {
+              if (d && d.error)
+                throw { dead: true, why: "артист удалён из Deezer" };
+            });
+          },
+        },
+        {
+          match: /^https:\/\/music\.apple\.com\//,
+          check: function () {
+            return jsonp(
+              "https://itunes.apple.com/search?term=2stvolka&entity=song&limit=5"
+            ).then(function (d) {
+              if (!d || !d.resultCount)
+                throw { dead: true, why: "артист не найден в Apple Music" };
+            });
+          },
+        },
+      ];
+
+      function hideLink(url, why) {
+        var anchors = document.querySelectorAll('a[href="' + url + '"]');
+        Array.prototype.forEach.call(anchors, function (a) {
+          var li = a.closest("li");
+          if (li) li.style.display = "none";
+          else a.style.display = "none";
+        });
+        console.log("Скрыта неработающая ссылка:", url, "—", why);
+      }
+
+      function checkLink(url) {
+        if (KNOWN_DEAD_LINKS.indexOf(url) >= 0) {
+          hideLink(url, "страница артиста удалена (проверено вручную)");
+          return;
+        }
+        var rule = null;
+        for (var i = 0; i < ENTITY_CHECKS.length; i++) {
+          if (ENTITY_CHECKS[i].match.test(url)) {
+            rule = ENTITY_CHECKS[i];
+            break;
+          }
+        }
+        var verdict;
+        if (rule) {
+          // точная проверка; сетевой сбой не считаем смертью ссылки —
+          // fallback на простую доступность
+          verdict = rule.check(url).catch(function (e) {
+            if (e && e.dead) throw e;
+            return checkReachable(url).then(function (ok) {
+              if (!ok) throw { dead: true, why: "сайт недоступен" };
+            });
+          });
+        } else {
+          verdict = checkReachable(url).then(function (ok) {
+            if (!ok) throw { dead: true, why: "сайт недоступен" };
+          });
+        }
+        verdict.catch(function (e) {
+          hideLink(url, (e && e.why) || "сайт недоступен");
+        });
+      }
+
+      function checkAllLinks() {
+        var urls = [];
+        var anchors = document.querySelectorAll(
+          ".links ul a[href^='http'], header nav a[href^='http']"
+        );
+        Array.prototype.forEach.call(anchors, function (a) {
+          var u = a.getAttribute("href");
+          if (urls.indexOf(u) < 0) urls.push(u);
+        });
+        urls.forEach(checkLink);
+      }
+
+      checkAllLinks();
+
       var ytApiScript = document.createElement("script");
       ytApiScript.src = "https://www.youtube.com/iframe_api";
       document.head.appendChild(ytApiScript);
