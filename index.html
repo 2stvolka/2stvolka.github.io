@@ -1165,9 +1165,30 @@
 
       // Яндекс Музыка: виджет music.yandex.ru/iframe/#track/<id>/<albumId>
       // играет ознакомительный фрагмент с обложкой без авторизации и
-      // работает из РФ без VPN. Заполняется ссылками вида
-      // https://music.yandex.ru/album/<albumId>/track/<trackId>
-      var YANDEX_TRACK_EMBEDS = [];
+      // работает из РФ без VPN. Не-РФ посетители остаются на YouTube.
+      var YANDEX_TRACK_EMBEDS = [
+        "https://music.yandex.ru/iframe/#track/151792610/42258132", // Воспоминания
+      ];
+
+      // Определяем посетителя из РФ по часовому поясу
+      var RU_TIMEZONES = [
+        "Europe/Moscow", "Europe/Kaliningrad", "Europe/Samara",
+        "Europe/Volgograd", "Europe/Kirov", "Europe/Saratov",
+        "Europe/Ulyanovsk", "Europe/Astrakhan", "Asia/Yekaterinburg",
+        "Asia/Omsk", "Asia/Novosibirsk", "Asia/Krasnoyarsk", "Asia/Irkutsk",
+        "Asia/Yakutsk", "Asia/Vladivostok", "Asia/Magadan",
+        "Asia/Kamchatka", "Asia/Anadyr", "Asia/Barnaul", "Asia/Tomsk",
+        "Asia/Ulan_Ude", "Asia/Khandyga", "Asia/Sakhalin",
+        "Asia/Srednekolymsk", "Asia/Ust-Nera",
+      ];
+      function isRussianVisitor() {
+        try {
+          var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+          return RU_TIMEZONES.indexOf(tz) >= 0;
+        } catch (e) {
+          return false;
+        }
+      }
 
       var afBox, afCover, afTitle, afStatus, afAudio, afEmbedHolder, afResume;
 
@@ -1356,8 +1377,9 @@
         showFallback(clean, "Ищу обложку и песню…", ytCover);
 
         // 0. Яндекс Музыка — ознакомительный фрагмент с обложкой,
-        // доступен из РФ без VPN (список заполняется ссылками на треки)
-        if (YANDEX_TRACK_EMBEDS.length) {
+        // только для посетителей из РФ (не-РФ остаются на YouTube,
+        // для них виджет Яндекса недоступен)
+        if (isRussianVisitor() && YANDEX_TRACK_EMBEDS.length) {
           afStatus.textContent = "Яндекс Музыка: ознакомительный фрагмент";
           var yifr = document.createElement("iframe");
           yifr.src = YANDEX_TRACK_EMBEDS[rnd(YANDEX_TRACK_EMBEDS.length)];
