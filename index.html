@@ -974,7 +974,7 @@
       // Кеш списков видео обоих каналов — чтобы знать id следующего
       // ролика ДО переключения и прогреть его обложку заранее
       var playlistCache = [null, null];
-      var switching = false;
+      var switchToken = 0; // каждый новый клик обесценивает предыдущее
 
       function pickRandomId() {
         var cur = "";
@@ -1033,15 +1033,17 @@
       }
 
       // Немедленная остановка, показ обложки, старт только когда
-      // картинка следующего видео прогрузилась
+      // картинка следующего видео прогрузилась. Каждый новый клик
+      // отменяет незавершённое предыдущее — кнопки всегда отзывчивы
       function switchToVideo(id) {
-        if (!id || switching) return;
-        switching = true;
+        if (!id) return;
+        var token = ++switchToken;
         try {
           ytPlayer.pauseVideo();
         } catch (e) {}
         showSwitchCover(id);
         preloadCover(id, function () {
+          if (token !== switchToken) return; // уже кликнули снова — устарело
           var list = ytPlayer.getPlaylist() || [];
           var idx = list.indexOf(id);
           if (currentChannel >= 0 && idx >= 0) {
@@ -1049,11 +1051,6 @@
           } else {
             ytPlayer.loadVideoById(id);
           }
-          // страховка: снять блокировку и обложку даже без события
-          setTimeout(function () {
-            switching = false;
-            hideSwitchCover();
-          }, 5000);
         });
       }
 
@@ -1133,9 +1130,12 @@
                 ) {
                   playlistCache[currentChannel] = curList.slice();
                 }
-                // новое видео начало грузиться/играть — убираем обложку
-                if (e.data === YT.PlayerState.PLAYING) {
-                  switching = false;
+                // плеер готов что-то показывать сам — убираем обложку
+                if (
+                  e.data === YT.PlayerState.PLAYING ||
+                  e.data === YT.PlayerState.CUED ||
+                  e.data === YT.PlayerState.PAUSED
+                ) {
                   hideSwitchCover();
                 }
               }
