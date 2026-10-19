@@ -320,17 +320,40 @@
         color: #000000;
       }
 
-      /* --- RANDOM YOUTUBE PLAYER WINDOW --- */
+      /* --- RANDOM YOUTUBE PLAYER WINDOW (круглый «винил») --- */
       .player-window {
         position: relative;
-        width: min(92%, 860px);
-        aspect-ratio: 16 / 9;
+        width: min(92%, 540px);
+        aspect-ratio: 1 / 1;
         margin: 25px auto 5px;
+      }
+      .player-disc {
+        position: absolute;
+        inset: 0;
         background: #000000;
         border: 2px solid var(--color-main-orange);
-        border-radius: 12px;
+        border-radius: 50%;
         overflow: hidden;
         box-shadow: 0 0 15px rgba(255, 140, 0, 0.45);
+      }
+      /* Медленно вращающееся пунктирное кольцо — пока идёт воспроизведение */
+      .player-window::after {
+        content: "";
+        position: absolute;
+        inset: -9px;
+        border: 2px dashed var(--color-light-orange);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: slow-spin 24s linear infinite;
+        animation-play-state: paused;
+      }
+      .player-window.is-playing::after {
+        animation-play-state: running;
+      }
+      @keyframes slow-spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
       .player-window #yt-player {
         position: absolute;
@@ -572,8 +595,9 @@
         </button>
       </div>
       <div class="player-window">
-        <div id="yt-player"></div>
-        <div id="audio-fallback" class="audio-fallback" hidden>
+        <div class="player-disc">
+          <div id="yt-player"></div>
+          <div id="audio-fallback" class="audio-fallback" hidden>
           <img id="af-cover" alt="обложка" />
           <div id="af-embed-holder"></div>
           <div id="af-title"></div>
@@ -582,6 +606,7 @@
           <button id="af-resume" type="button">
             ▶ Следующее случайное видео
           </button>
+          </div>
         </div>
       </div>
       <ul>
@@ -873,6 +898,12 @@
       var currentChannel = -1;
       var errorStreak = 0;
 
+      // Вращение кольца-«винила» вокруг окна во время воспроизведения
+      function setSpinning(on) {
+        var pw = document.querySelector(".player-window");
+        if (pw) pw.classList.toggle("is-playing", !!on);
+      }
+
       // История просмотренных видео для стрелок «предыдущее/следующее»
       var playHistory = [];
       var historyPos = -1;
@@ -973,7 +1004,11 @@
                 e.data === YT.PlayerState.BUFFERING
               ) {
                 errorStreak = 0;
+                setSpinning(true);
                 rememberInHistory();
+              }
+              if (e.data === YT.PlayerState.PAUSED) {
+                setSpinning(false);
               }
             },
             onError: function () {
@@ -1009,6 +1044,13 @@
         afResume.addEventListener("click", resumeYouTube);
         afAudio.addEventListener("ended", resumeYouTube);
         afAudio.addEventListener("error", resumeYouTube);
+        // кольцо крутится и во время fallback-воспроизведения
+        afAudio.addEventListener("play", function () {
+          setSpinning(true);
+        });
+        afAudio.addEventListener("pause", function () {
+          setSpinning(false);
+        });
       }
 
       // Убираем хэштеги, ссылки и символы из названия видео YouTube
