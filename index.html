@@ -441,6 +441,25 @@
       .audio-fallback button:hover {
         background: var(--color-background-hover);
       }
+      /* Быстрые ссылки на российские сервисы внутри запасной панели */
+      .af-ru-links {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .af-ru-links a {
+        padding: 6px 14px;
+        background: #000000;
+        color: var(--color-main-orange);
+        border: 1px solid var(--color-main-orange);
+        border-radius: 16px;
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .af-ru-links a:hover {
+        background: var(--color-background-hover);
+      }
 
       /* --- CONTACT SECTION & SCROLL BUTTON --- */
       .contact {
@@ -625,6 +644,7 @@
           <div id="af-embed-holder"></div>
           <div id="af-title"></div>
           <div id="af-status"></div>
+          <div id="af-ru-links" class="af-ru-links"></div>
           <audio id="af-audio" controls></audio>
           <button id="af-resume" type="button">
             ▶ Следующее случайное видео
@@ -941,6 +961,16 @@
       }
 
       function prevVideo() {
+        if (typeof ytUnusable !== "undefined" && ytUnusable) {
+          // радио-режим: перезапускаем текущий фрагмент
+          if (afAudio && !afAudio.hidden) {
+            try {
+              afAudio.currentTime = 0;
+              afAudio.play();
+            } catch (e) {}
+          }
+          return;
+        }
         if (!ytPlayer || !ytPlayer.getVideoData) return;
         if (historyPos > 0) {
           historyPos--;
@@ -953,6 +983,11 @@
       }
 
       function nextVideo() {
+        if (typeof ytUnusable !== "undefined" && ytUnusable) {
+          // радио-режим: следующая случайная песня
+          playRandomFallbackTrack();
+          return;
+        }
         if (!ytPlayer || !ytPlayer.getVideoData) return;
         if (historyPos < playHistory.length - 1) {
           historyPos++;
@@ -1236,9 +1271,80 @@
         afAudio.hidden = true;
         afAudio.removeAttribute("src");
         afEmbedHolder.innerHTML = "";
+        // Быстрые ссылки на российские сервисы: послушать трек целиком
+        // (Звук не отдаёт фрагмент без входа — даём один клик до песни)
+        var ru = document.getElementById("af-ru-links");
+        if (ru) {
+          ru.innerHTML = "";
+          var q = encodeURIComponent((title || "2stvolka") + " 2stvolka");
+          var yandex = document.createElement("a");
+          yandex.href = "https://music.yandex.ru/search?text=" + q;
+          yandex.target = "_blank";
+          yandex.rel = "noopener";
+          yandex.textContent = "Яндекс Музыка ▸";
+          var zvuk = document.createElement("a");
+          zvuk.href = "https://zvuk.com/search?query=" + q;
+          zvuk.target = "_blank";
+          zvuk.rel = "noopener";
+          zvuk.textContent = "Звук ▸";
+          ru.appendChild(yandex);
+          ru.appendChild(zvuk);
+        }
+      }
+
+      // true, когда YouTube признан системно недоступным (вотчдог,
+      // например РФ без VPN) — тогда стрелки включают радио из песен
+      var ytUnusable = false;
+
+      // Радио-режим: случайная песня из бесплатных источников
+      function itunesRandomTrack() {
+        return jsonp(
+          "https://itunes.apple.com/search?term=" +
+            encodeURIComponent("2stvolka") +
+            "&entity=song&limit=25"
+        ).then(function (data) {
+          var results = (data && data.results) || [];
+          var pool = results.filter(function (r) {
+            return r.previewUrl && /2stvolka/i.test(r.artistName || "");
+          });
+          if (!pool.length)
+            pool = results.filter(function (r) {
+              return r.previewUrl;
+            });
+          if (!pool.length) throw new Error("itunes empty");
+          var t = pool[rnd(pool.length)];
+          return {
+            title: t.trackName,
+            cover: (t.artworkUrl100 || "").replace("100x100", "600x600"),
+            audio: t.previewUrl,
+          };
+        });
+      }
+
+      function playRandomFallbackTrack() {
+        if (!afBox) afInit();
+        showFallback("", "Ищу песню…", null);
+        itunesRandomTrack()
+          .then(function (track) {
+            showFallback(track.title, "iTunes: 30-секундное превью", track.cover);
+            playItunesTrack(track);
+          })
+          .catch(function () {
+            var s = AUDIOMACK_SONGS[rnd(AUDIOMACK_SONGS.length)];
+            if (s) {
+              showFallback(s.title, "Audiomack: полная песня", null);
+              playAudiomack(s, null);
+            }
+          });
       }
 
       function resumeYouTube() {
+        if (!afBox) afInit();
+        if (ytUnusable) {
+          // YouTube недоступен — радио из песень вместо возврата к видео
+          playRandomFallbackTrack();
+          return;
+        }
         try {
           afAudio.pause();
         } catch (e) {}
@@ -1585,13 +1691,19 @@
       // YouTube недоступен/замедлен (например, в РФ без VPN):
       // скрипт API не загрузился или плеер не создался — включаем запасной
       ytApiScript.onerror = function () {
+        ytUnusable = true;
         setTimeout(handlePlaybackError, 1500);
       };
       setTimeout(function () {
-        if (!ytPlayer) handlePlaybackError();
+        if (!ytPlayer) {
+          ytUnusable = true;
+          handlePlaybackError();
+        }
       }, 12000);
-      // видео «висит» в буферизации дольше 25 секунд — тоже запасной
+      // видео «висит» в буферизации дольше 25 секунд — тоже запасной;
+      // если это повторяется — считаем YouTube системно недоступным
       var bufferingSince = 0;
+      var bufferingFails = 0;
       setInterval(function () {
         if (!ytPlayer || !ytPlayer.getPlayerState) return;
         if (ytPlayer.getPlayerState() === 3) {
@@ -1599,6 +1711,8 @@
             bufferingSince = Date.now();
           } else if (Date.now() - bufferingSince > 25000) {
             bufferingSince = 0;
+            bufferingFails++;
+            if (bufferingFails >= 2) ytUnusable = true;
             handlePlaybackError();
           }
         } else {
