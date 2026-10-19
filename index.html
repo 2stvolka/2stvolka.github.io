@@ -400,8 +400,8 @@
         display: none;
       }
       .audio-fallback img {
-        max-width: 45%;
-        max-height: 55%;
+        max-width: 88%;
+        max-height: 64%;
         border-radius: 8px;
         box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
         object-fit: contain;
@@ -1173,6 +1173,10 @@
                 ) {
                   hideSwitchCover();
                 }
+                // видео снова играет — запасная панель больше не нужна
+                if (e.data === YT.PlayerState.PLAYING && !ytUnusable) {
+                  closeFallbackPanel();
+                }
               }
               if (e.data === YT.PlayerState.PAUSED) {
                 setSpinning(false);
@@ -1271,6 +1275,7 @@
         afAudio.hidden = true;
         afAudio.removeAttribute("src");
         afEmbedHolder.innerHTML = "";
+        afResume.hidden = false;
         // Быстрые ссылки на российские сервисы: послушать трек целиком
         // (Звук не отдаёт фрагмент без входа — даём один клик до песни)
         var ru = document.getElementById("af-ru-links");
@@ -1338,6 +1343,16 @@
           });
       }
 
+      function closeFallbackPanel() {
+        if (!afBox) return;
+        try {
+          afAudio.pause();
+        } catch (e) {}
+        afBox.hidden = true;
+        afCover.removeAttribute("src");
+        afEmbedHolder.innerHTML = "";
+      }
+
       function resumeYouTube() {
         if (!afBox) afInit();
         if (ytUnusable) {
@@ -1345,12 +1360,7 @@
           playRandomFallbackTrack();
           return;
         }
-        try {
-          afAudio.pause();
-        } catch (e) {}
-        afBox.hidden = true;
-        afCover.removeAttribute("src");
-        afEmbedHolder.innerHTML = "";
+        closeFallbackPanel();
         playRandom();
       }
 
@@ -1487,6 +1497,8 @@
         // для них виджет Яндекса недоступен)
         if (isRussianVisitor() && YANDEX_TRACK_EMBEDS.length) {
           afStatus.textContent = "Яндекс Музыка: ознакомительный фрагмент";
+          // для РФ кнопка возврата не нужна: работают стрелки и ссылки
+          afResume.hidden = true;
           var yifr = document.createElement("iframe");
           yifr.src = YANDEX_TRACK_EMBEDS[rnd(YANDEX_TRACK_EMBEDS.length)];
           yifr.style.height = "180px";
