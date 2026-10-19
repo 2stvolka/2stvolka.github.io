@@ -328,10 +328,10 @@
         aspect-ratio: 4 / 3;
         margin: 25px auto 5px;
       }
-      /* РФ-режим с виджетом Яндекса: окно вытянуто по вертикали,
+      /* РФ-режим с виджетом Яндекса: окно крупнее и вытянуто по вертикали,
          потому что виджет добавляет свою рекламную полосу */
       .player-window.ru-tall {
-        width: min(92%, 520px);
+        width: min(94%, 640px);
         aspect-ratio: 3 / 4;
       }
       .player-disc {
@@ -1558,10 +1558,10 @@
           if (!clean) afTitle.textContent = "Воспоминания";
           afCover.hidden = false;
           afCover.src = rel.url;
-          afCover.style.maxHeight = "46%";
+          afCover.style.maxHeight = "48%";
           var yifr = document.createElement("iframe");
           yifr.src = YANDEX_TRACK_EMBEDS[rnd(YANDEX_TRACK_EMBEDS.length)];
-          yifr.style.height = "190px";
+          yifr.style.height = "210px";
           yifr.title = "Яндекс Музыка";
           afEmbedHolder.appendChild(yifr);
           return;
