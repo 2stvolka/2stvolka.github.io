@@ -790,6 +790,12 @@
         "UUafR4RPRf09cVCgpMAzW2FA", // 2stvolka - Topic
       ];
       var MIN_PLAYLIST_LEN = 37; // длина самого короткого из плейлистов
+      var START_VIDEO_IDS = [
+        "AMpb18lgBCk", // В облаках
+        "Tj1iq2-Vh6k", // Люблю
+        "wvsMbNJ14gM", // Воспоминания
+        "O532GpPv1qc", // В облаках (основной канал)
+      ];
 
       var ytPlayer = null;
       var currentChannel = -1;
@@ -831,6 +837,10 @@
 
       window.onYouTubeIframeAPIReady = function () {
         ytPlayer = new YT.Player("yt-player", {
+          // Стартовый ролик нужен, чтобы плеер сразу открывался по
+          // валидной ссылке /embed/<id> — пустой /embed/ у части зрителей
+          // даёт YouTube Error 153 (ошибка конфигурации плеера)
+          videoId: START_VIDEO_IDS[rnd(START_VIDEO_IDS.length)],
           playerVars: {
             playsinline: 1,
             rel: 0,
