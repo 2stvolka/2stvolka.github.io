@@ -1209,6 +1209,36 @@
         "https://music.yandex.ru/iframe/#track/151792610/42258132", // Воспоминания
       ];
 
+      // Обложки релизов 2stvolka с открытого CDN Звука — крупные,
+      // без авторизации и без VPN из РФ (порядок = приоритет подбора)
+      var ZVUK_RELEASES = [
+        { title: "воспоминания", url: "https://cdn-image.zvuk.com/pic?hash=265d7bc8-5021-44c8-b68c-17cae987f76d&id=51618990&size=1000x1000&type=release" },
+        { title: "в облаках", url: "https://cdn-image.zvuk.com/pic?hash=47f22009-72e7-4731-a9d3-291d81077d50&id=51671968&size=1000x1000&type=release" },
+        { title: "люблю", url: "https://cdn-image.zvuk.com/pic?hash=559270ab-4d1c-487c-8bb2-faaab98beb1e&id=51670983&size=1000x1000&type=release" },
+        { title: "шальные огоньки", url: "https://cdn-image.zvuk.com/pic?hash=b91989eb-f342-4271-a08d-0155057c8297&id=52093119&size=1000x1000&type=release" },
+        { title: "мне уже не страшно", url: "https://cdn-image.zvuk.com/pic?hash=c66e6a54-4019-4bc8-b73b-d7b936c50a40&id=52093115&size=1000x1000&type=release" },
+        { title: "оля делает массаж", url: "https://cdn-image.zvuk.com/pic?hash=9fd359ea-e77a-44e3-a722-1e9e713c7dfc&id=51613680&size=1000x1000&type=release" },
+        { title: "кпт плюс эфт", url: "https://cdn-image.zvuk.com/pic?hash=83570e50-6e25-498f-b5e4-c9b1c42cb159&id=51588492&size=1000x1000&type=release" },
+        { title: "мы не настоящие", url: "https://cdn-image.zvuk.com/pic?hash=0073c78e-6519-47be-ab13-ab09c64c514f&id=51583007&size=1000x1000&type=release" },
+        { title: "f u death", url: "https://cdn-image.zvuk.com/pic?hash=11978b6b-2dcd-4c65-b3d2-427e4e51b1d6&id=51583511&size=1000x1000&type=release" },
+        { title: "я хороший", url: "https://cdn-image.zvuk.com/pic?hash=8a6c2dba-8400-4dc2-b477-30b57aa70e9a&id=51583009&size=1000x1000&type=release" },
+        { title: "всё конечно", url: "https://cdn-image.zvuk.com/pic?hash=c38c7da2-2a5c-42f8-935e-c00ef906e566&id=51583008&size=1000x1000&type=release" },
+        { title: "сын записки водителя", url: "https://cdn-image.zvuk.com/pic?hash=dc89ee88-7bf8-4944-9fcb-7230a251ae88&id=50734507&size=1000x1000&type=release" },
+      ];
+
+      function zvukReleaseFor(title) {
+        var norm = normTitle(title || "");
+        if (norm) {
+          for (var i = 0; i < ZVUK_RELEASES.length; i++) {
+            var r = ZVUK_RELEASES[i];
+            if (norm.indexOf(r.title) >= 0 || r.title.indexOf(norm) >= 0) {
+              return r;
+            }
+          }
+        }
+        return ZVUK_RELEASES[0]; // трек виджета Яндекса — «Воспоминания»
+      }
+
       // Определяем посетителя из РФ по часовому поясу
       var RU_TIMEZONES = [
         "Europe/Moscow", "Europe/Kaliningrad", "Europe/Samara",
@@ -1276,6 +1306,7 @@
         afAudio.removeAttribute("src");
         afEmbedHolder.innerHTML = "";
         afResume.hidden = false;
+        afCover.style.maxHeight = "";
         // Быстрые ссылки на российские сервисы: послушать трек целиком
         // (Звук не отдаёт фрагмент без входа — даём один клик до песни)
         var ru = document.getElementById("af-ru-links");
@@ -1499,12 +1530,17 @@
           afStatus.textContent = "Яндекс Музыка: ознакомительный фрагмент";
           // для РФ кнопка возврата не нужна: работают стрелки и ссылки
           afResume.hidden = true;
+          // крупная обложка релиза с открытого CDN Звука (без VPN из РФ)
+          var rel = zvukReleaseFor(rawTitle);
+          if (!clean) afTitle.textContent = "Воспоминания";
+          afCover.hidden = false;
+          afCover.src = rel.url;
+          afCover.style.maxHeight = "44%"; // чуть компактнее, чтобы вместить виджет
           var yifr = document.createElement("iframe");
           yifr.src = YANDEX_TRACK_EMBEDS[rnd(YANDEX_TRACK_EMBEDS.length)];
-          yifr.style.height = "180px";
+          yifr.style.height = "170px";
           yifr.title = "Яндекс Музыка";
           afEmbedHolder.appendChild(yifr);
-          afCover.hidden = true;
           return;
         }
 
